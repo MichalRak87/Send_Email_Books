@@ -48,5 +48,3 @@ def get_borrowers_by_return_date(connection, book_return_at):
         )
         print(tab)
         return users_data
-
-
