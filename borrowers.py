@@ -50,5 +50,3 @@ def get_borrowers_by_return_date(connection, book_return_at):
         return users_data
 
 
-users = get_borrowers_by_return_date(sql_connection, "2025-01-01")
-
