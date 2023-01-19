@@ -1,15 +1,23 @@
+"""
+Email context manager
+"""
 import logging
 import smtplib
 import ssl
 from email.message import EmailMessage
 from datetime import datetime
 
-logging.basicConfig(level=logging.INFO)
-date_format = "%Y-%m-%d %H:%M:%S"
+
+logging.basicConfig(level=logging.ERROR)
+FORMATTED_DATE = "%Y-%m-%d %H:%M:%S"
 
 
 class EmailSender:
-    logging.info(f"Start time: {datetime.now().strftime(date_format)}")
+    """
+    Email context manager
+    """
+
+    logging.info("Start time: %s}", datetime.now().strftime(FORMATTED_DATE))
 
     def __init__(self, port, smtp_server, credentials, ssl_enabled=False):
         self.ssl_enabled = ssl_enabled
@@ -17,43 +25,47 @@ class EmailSender:
         self.port = port
         self.connection = None
         self.credentials = credentials
-        self.sender = None
-        self.receiver = None
-        self.subject = None
-        logging.info(f"__init__ = OK")
+        logging.info("__init__ = OK")
 
     def __enter__(self):
         if not self.ssl_enabled:
             self.connection = smtplib.SMTP(self.smtp_server, self.port)
-            logging.info(f"SSL = {self.ssl_enabled}")
+            logging.info("SSL = %s", self.ssl_enabled)
         else:
             context = ssl.create_default_context()
             self.connection = smtplib.SMTP_SSL(self.smtp_server, self.port, context=context)
             logging.error("__enter__ self.connection = SSL")
         self.connection.login(self.credentials.username, self.credentials.password)
         logging.debug(
-            f"Logging: (Username: {self.credentials.username},Password: {self.credentials.password})"
+            "Logging: (Username: %s,Password: %s",
+            self.credentials.username,
+            self.credentials.password,
         )
         return self
 
     def send_mail(self, sender, receiver, subject, message_text):
-        self.sender = sender
-        self.receiver = receiver
-        self.subject = subject
+        """
+        Function send_email needs 4 param sender, receiver and subject message_text
+        :param sender: str: name surname <e-mail>
+        :param receiver: str: name surname <e-mail>
+        :param subject: str: e-mail subject
+        :param message_text: str: message
+        :return: None
+        """
         message = EmailMessage()
+        message.set_charset("utf-8")
         message["From"] = sender
         message["To"] = receiver
         message["Subject"] = subject
         message.set_content(message_text)
         self.connection.sendmail(sender, receiver, message.as_string())
+        logging.info(
+            "Message From: %s To: %s Subject: %s has been created", sender, receiver, subject
+        )
+        print(f"Message to {receiver} has been sent correctly")
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if not isinstance(exc_val, Exception):
-            logging.info(
-                f"Message From: {self.sender} To: {self.receiver}"
-                f" Subject: {self.subject} has sent"
-            )
-        else:
-            logging.exception(f"Exception{exc_val}")
+        if isinstance(exc_val, Exception):
+            logging.exception("Exception %s", exc_val)
         self.connection.close()
-        logging.info(f"Connection closed | {datetime.now().strftime(date_format)}")
+        logging.info("Connection closed : %s", datetime.now().strftime(FORMATTED_DATE))
